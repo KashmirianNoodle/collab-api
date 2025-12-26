@@ -31,3 +31,32 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
+
+# version: '3.8'
+# services:
+#   app:
+#     build: .
+#     environment:
+#       PORT: 4000
+#       DATABASE_URL: postgres://postgres:postgres@db:5432/collab
+#       REDIS_URL: redis://redis:6379
+#       JWT_SECRET: supersecret
+#     ports:
+#       - "4000:4000"
+#     depends_on:
+#       - db
+#       - redis
+
+#   db:
+#     image: postgres:16-alpine
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: postgres
+#       POSTGRES_DB: collab
+#     ports:
+#       - "5432:5432"
+
+#   redis:
+#     image: redis:7-alpine
+#     ports:
+#       - "6379:6379"
