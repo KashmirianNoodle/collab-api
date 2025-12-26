@@ -1,0 +1,20 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collab-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: collab-api
+  template:
+    metadata:
+      labels:
+        app: collab-api
+    spec:
+      containers:
+      - name: api
+        image: collab-api:latest
+        ports:
+        - containerPort: 4000
