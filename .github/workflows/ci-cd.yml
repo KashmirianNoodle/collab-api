@@ -63,6 +63,7 @@ jobs:
   docker-build:
     needs: build-test
     runs-on: ubuntu-latest
+    environment: production
     if: github.ref == 'refs/heads/main'
 
     steps:
@@ -86,6 +87,7 @@ jobs:
   deploy-render:
     needs: docker-build
     runs-on: ubuntu-latest
+    environment: production
     if: github.ref == 'refs/heads/main'
 
     steps:
