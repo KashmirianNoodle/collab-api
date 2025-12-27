@@ -89,4 +89,57 @@ router.post("/", auth(["OWNER", "COLLABORATOR"]), workspacesController.createWor
  */
 router.get("/:id", auth(), workspacesController.getWorkspace);
 
+/**
+ * @swagger
+ * /workspaces/{id}:
+ *   delete:
+ *     summary: Delete a workspace
+ *     tags: [Workspaces]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Workspace deleted
+ */
+router.delete("/:id", auth(["OWNER"]), workspacesController.deleteWorkspace);
+
+/**
+ * @swagger
+ * /projects/{projectId}/workspaces:
+ *   get:
+ *     summary: List all workspaces in a project
+ *     tags: [Workspaces]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of workspaces
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   project_id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ */
+router.get("/projects/:projectId/workspaces", auth(), workspacesController.listWorkspaces);
+
 module.exports = router;

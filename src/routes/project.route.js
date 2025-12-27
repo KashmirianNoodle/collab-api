@@ -139,6 +139,68 @@ router.get("/:projectId", auth(), projectsController.getProject);
 
 /**
  * @swagger
+ * /projects:
+ *   get:
+ *     summary: List projects for the authenticated user
+ *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of projects
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   owner_id:
+ *                     type: string
+ */
+
+router.get("/", projectsController.listProjects);
+
+/**
+ * @swagger
+ * /projects/{projectId}/members:
+ *   get:
+ *     summary: List members of a project
+ *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Project members
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   role:
+ *                     type: string
+ */
+
+router.get("/:projectId/members", projectsController.listProjectMembers);
+
+/**
+ * @swagger
  * /projects/{projectId}/invite:
  *   post:
  *     summary: Invite a user to a project

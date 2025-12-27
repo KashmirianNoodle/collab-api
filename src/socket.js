@@ -7,9 +7,10 @@ function initSocket(server) {
     cors: { origin: "*" },
   });
 
-  // Redis adapter for multi-instance scaling
+  // Redis adapter (horizontal scaling)
   io.adapter(createAdapter(pubClient, subClient));
 
+  // Auth middleware
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("Authentication error"));
@@ -24,49 +25,95 @@ function initSocket(server) {
   });
 
   io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.userId}`);
+    console.log("Connected:", socket.userId);
 
-    // join project room
-    socket.on("join_project", ({ projectId }) => {
-      socket.join(projectId);
-      io.to(projectId).emit("user_join", { userId: socket.userId });
-    });
+    /**
+     * Join project (high-level room)
+     */
+    socket.on("project:join", async ({ projectId }) => {
+      socket.join(`project:${projectId}`);
 
-    // leave project
-    socket.on("leave_project", ({ projectId }) => {
-      socket.leave(projectId);
-      io.to(projectId).emit("user_leave", { userId: socket.userId });
-    });
+      await pubClient.sadd(`project:${projectId}:users`, socket.userId);
 
-    // file change
-    socket.on("file_change", ({ projectId, file, content }) => {
-      io.to(projectId).emit("file_change", {
+      socket.to(`project:${projectId}`).emit("presence:update", {
         userId: socket.userId,
-        file,
-        content,
+        status: "online",
       });
     });
 
-    // cursor/activity updates
-    socket.on("cursor_update", ({ projectId, cursor }) => {
-      io.to(projectId).emit("cursor_update", {
+    /**
+     * Join workspace (editor-level room)
+     */
+    socket.on("workspace:join", async ({ workspaceId }) => {
+      socket.join(`workspace:${workspaceId}`);
+
+      await pubClient.sadd(`workspace:${workspaceId}:users`, socket.userId);
+
+      socket.to(`workspace:${workspaceId}`).emit("presence:update", {
+        userId: socket.userId,
+        status: "online",
+      });
+    });
+
+    /**
+     * File edits (OT / CRDT ready)
+     */
+    socket.on("editor:update", ({ workspaceId, fileId, delta }) => {
+      socket.to(`workspace:${workspaceId}`).emit("editor:update", {
+        userId: socket.userId,
+        fileId,
+        delta,
+      });
+    });
+
+    /**
+     * Cursor movement
+     */
+    socket.on("cursor:update", ({ workspaceId, cursor }) => {
+      socket.to(`workspace:${workspaceId}`).emit("cursor:update", {
         userId: socket.userId,
         cursor,
       });
     });
 
-    socket.on("activity", ({ projectId, action }) => {
-      io.to(projectId).emit("activity", {
+    /**
+     * Activity feed (join, save, run, etc.)
+     */
+    socket.on("activity", ({ projectId, action, meta }) => {
+      socket.to(`project:${projectId}`).emit("activity", {
         userId: socket.userId,
         action,
+        meta,
+        at: Date.now(),
       });
     });
 
-    socket.on("disconnecting", () => {
-      const rooms = Array.from(socket.rooms).filter((r) => r !== socket.id);
-      rooms.forEach((room) => {
-        io.to(room).emit("user_leave", { userId: socket.userId });
+    /**
+     * Leave workspace
+     */
+    socket.on("workspace:leave", async ({ workspaceId }) => {
+      socket.leave(`workspace:${workspaceId}`);
+      await pubClient.srem(`workspace:${workspaceId}:users`, socket.userId);
+
+      socket.to(`workspace:${workspaceId}`).emit("presence:update", {
+        userId: socket.userId,
+        status: "offline",
       });
+    });
+
+    /**
+     * Disconnect cleanup
+     */
+    socket.on("disconnecting", async () => {
+      for (const room of socket.rooms) {
+        if (room.startsWith("workspace:")) {
+          await pubClient.srem(`${room}:users`, socket.userId);
+          socket.to(room).emit("presence:update", {
+            userId: socket.userId,
+            status: "offline",
+          });
+        }
+      }
     });
   });
 

@@ -81,6 +81,47 @@ async function inviteUser(req, res) {
 }
 
 /**
+ * List Projects
+ */
+async function listProjects(req, res) {
+  try {
+    const { rows } = await db.query(
+      `SELECT p.*
+       FROM projects p
+       JOIN project_members pm ON pm.project_id = p.id
+       WHERE pm.user_id = $1`,
+      [req.user.id]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+/**
+ * List Project members
+ */
+async function listProjectMembers(req, res) {
+  try {
+    const { rows } = await db.query(
+      `SELECT u.id, u.email, pm.role
+       FROM project_members pm
+       JOIN users u ON u.id = pm.user_id
+       WHERE pm.project_id = $1`,
+      [req.params.projectId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
+/**
  * Update a user's role
  */
 async function updateUserRole(req, res) {
@@ -103,6 +144,8 @@ module.exports = {
   updateProject,
   deleteProject,
   getProject,
+  listProjects,
+  listProjectMembers,
   inviteUser,
   updateUserRole,
 };

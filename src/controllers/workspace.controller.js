@@ -29,7 +29,41 @@ async function getWorkspace(req, res) {
   }
 }
 
+/**
+ * Lists workspaces
+ */
+async function listWorkspaces(req, res) {
+  try {
+    const { rows } = await db.query(
+      "SELECT * FROM workspaces WHERE project_id=$1",
+      [req.params.projectId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+/**
+ * Delete a workspace by ID
+ */
+async function deleteWorkspace(req, res) {
+  try {
+    await db.query("DELETE FROM workspaces WHERE id=$1", [req.params.id]);
+    res.sendStatus(204);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
+
 module.exports = {
   createWorkspace,
   getWorkspace,
+  listWorkspaces,
+  deleteWorkspace
 };

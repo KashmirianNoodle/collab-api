@@ -65,11 +65,37 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 `;
 
+const indexSql = `
+-- USERS
+CREATE UNIQUE INDEX idx_users_email ON users(email);
+
+-- REFRESH TOKENS
+CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
+
+-- PROJECTS
+CREATE INDEX idx_projects_owner_id ON projects(owner_id);
+
+-- PROJECT MEMBERS
+CREATE INDEX idx_project_members_user_id ON project_members(user_id);
+CREATE INDEX idx_project_members_role ON project_members(role);
+
+-- WORKSPACES
+CREATE INDEX idx_workspaces_project_id ON workspaces(project_id);
+
+-- JOBS
+CREATE INDEX idx_jobs_status ON jobs(status);
+CREATE INDEX idx_jobs_attempts ON jobs(attempts);
+CREATE INDEX idx_jobs_created_at ON jobs(created_at);
+CREATE INDEX idx_jobs_started_at ON jobs(started_at);
+CREATE INDEX idx_jobs_finished_at ON jobs(finished_at);
+
+`;
 async function run() {
   await client.connect();
   await client.query(schemaSQL);
+  await client.query(indexSql);
   await client.end();
-  console.log("✅ Tables created successfully");
+  console.log("✅ Tables and indexes created successfully");
 }
 
 run().catch(console.error);
