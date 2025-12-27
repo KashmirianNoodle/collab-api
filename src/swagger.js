@@ -13,6 +13,9 @@ const options = {
       {
         url: "http://localhost:4000/api/v1",
       },
+      {
+        url: "https://collab-api-b3a4.onrender.com/api/v1",
+      },
     ],
     components: {
       securitySchemes: {
