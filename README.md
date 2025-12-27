@@ -129,14 +129,16 @@ coverage/lcov-report/index.html
 
 ## Future Improvements
 
-- Rate limiting
 - Audit logs
 - Webhooks
 - Fine-grained permissions
-- Multi-region DB replication
+- Multiple data stores
 
 ---
 
 ## License
 
-MIT
+© 2025 Mir Shafeeq.  
+All rights reserved.  
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT) – you are free to use, copy, modify, and distribute it, provided proper attribution is given.
